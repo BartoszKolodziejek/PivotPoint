@@ -7,6 +7,7 @@ import com.forex.jExpertAdvisor.trades.TradeMgr;
 import com.forex.jExpertAdvisor.trades.TradeType;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -28,7 +29,7 @@ public class PivotPoint extends IStrategy {
        BigDecimal min = Collections.min(last24h.stream().map(Candle::getLow).collect(Collectors.toList()));
        BigDecimal max = Collections.max(last24h.stream().map(Candle::getHigh).collect(Collectors.toList()));
        BigDecimal close = last24h.get(last24h.size()-1).getClose();
-       this.pivotPoint = (min.add(max.add(close))).divide(new BigDecimal(3));
+       this.pivotPoint = (min.add(max.add(close))).divide(new BigDecimal(3), RoundingMode.HALF_UP);
        this.R1 = pivotPoint.multiply(new BigDecimal(2)).subtract(min);
        this.S1 = pivotPoint.multiply(new BigDecimal(2)).subtract(max);
     }
