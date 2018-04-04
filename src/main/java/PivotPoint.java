@@ -7,6 +7,7 @@ import com.forex.jExpertAdvisor.trades.TradeMgr;
 import com.forex.jExpertAdvisor.trades.TradeType;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,11 +44,12 @@ public class PivotPoint extends IStrategy {
     }
 
     public void OnStart() {
-       Calendar c =  Calendar.getInstance();
-       c.setTime(MarketMgr.getInstance(getSymbol()).getCurrentCandle().getDate());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("u-HH:mm");
+       String[] strings = dateFormat.format(MarketMgr.getInstance(getSymbol()).getCurrentCandle().getDate()).split("-");
 
 
-        if(c.HOUR_OF_DAY==0&& c.DAY_OF_WEEK!=1&&c.DAY_OF_WEEK!=7){
+
+        if(strings[1].equals("00:00")&& !strings[0].equals("1")&&!strings[0].equals("7")){
            for (int j=ExistingTrades.getInstance().size(); j==0; j--){
                if (ExistingTrades.getInstance().get(j).getStrategy().equals(this)) {
                    try {
