@@ -50,7 +50,7 @@ public class PivotPoint extends IStrategy {
 
 
         if(strings[1].equals("00:00")&& !strings[0].equals("1")&&!strings[0].equals("7")){
-           for (int j=ExistingTrades.getInstance().size(); j==0; j--){
+           for (int j=ExistingTrades.getInstance().size()-1; j==0; j--){
                if (ExistingTrades.getInstance().get(j).getStrategy().equals(this)) {
                    try {
                        TradeMgr.getInstance().close(ExistingTrades.getInstance().get(j));
