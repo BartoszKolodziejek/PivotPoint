@@ -29,7 +29,7 @@
     <dependency>
         <groupId>com.github.BartoszKolodziejek</groupId>
         <artifactId>jExepertAdvisor</artifactId>
-        <version>4134331e79</version>
+        <version>51c3f5fc7e</version>
     </dependency>
     </dependencies>
 
