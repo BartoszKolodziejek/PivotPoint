@@ -1,10 +1,8 @@
 import com.forex.jExpertAdvisor.candles.Candle;
 import com.forex.jExpertAdvisor.main.MarketMgr;
 import com.forex.jExpertAdvisor.stoplosses.MovingStopLoss;
-import com.forex.jExpertAdvisor.trades.ExistingTrades;
-import com.forex.jExpertAdvisor.trades.IStrategy;
-import com.forex.jExpertAdvisor.trades.TradeMgr;
-import com.forex.jExpertAdvisor.trades.TradeType;
+import com.forex.jExpertAdvisor.stoplosses.StopLoss;
+import com.forex.jExpertAdvisor.trades.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,17 +19,30 @@ public class PivotPoint extends IStrategy {
 
     private BigDecimal pivotPoint;
     private BigDecimal R1;
+    private BigDecimal R2;
     private BigDecimal S1;
+    private BigDecimal S2;
 
+
+
+    public boolean isThisStrategyTradeType(TradeType tradeType){
+        for(Trade trade: ExistingTrades.getInstance()){
+            if (trade.getStrategy().equals(this)&&trade.getType().equals(tradeType))
+                return true;
+        }
+        return false;
+    }
 
     private void calculatePivotPointSupportAndResistance(){
-       List<Candle> last24h = MarketMgr.getInstance(this.getSymbol()).getHistoricView().subList(MarketMgr.getInstance(this.getSymbol()).getHistoricView().size()-25, MarketMgr.getInstance(this.getSymbol()).getHistoricView().size()-1);
-       BigDecimal min = Collections.min(last24h.stream().map(Candle::getLow).collect(Collectors.toList()));
-       BigDecimal max = Collections.max(last24h.stream().map(Candle::getHigh).collect(Collectors.toList()));
-       BigDecimal close = last24h.get(last24h.size()-1).getClose();
+       List<Candle> lastweek = MarketMgr.getInstance(this.getSymbol()).getHistoricView().subList(MarketMgr.getInstance(this.getSymbol()).getHistoricView().size()-(7*24+1), MarketMgr.getInstance(this.getSymbol()).getHistoricView().size()-1);
+       BigDecimal min = Collections.min(lastweek.stream().map(Candle::getLow).collect(Collectors.toList()));
+       BigDecimal max = Collections.max(lastweek.stream().map(Candle::getHigh).collect(Collectors.toList()));
+       BigDecimal close = lastweek.get(lastweek.size()-1).getClose();
        this.pivotPoint = (min.add(max.add(close))).divide(new BigDecimal(3), RoundingMode.HALF_UP);
        this.R1 = pivotPoint.multiply(new BigDecimal(2)).subtract(min);
        this.S1 = pivotPoint.multiply(new BigDecimal(2)).subtract(max);
+       this.R2 = pivotPoint.add(max.subtract(min));
+       this.S2 = pivotPoint.add(max.subtract(min));
     }
 
 
@@ -50,7 +61,7 @@ public class PivotPoint extends IStrategy {
 
 
 
-        if(strings[1].equals("00:00")&& !strings[0].equals("1")&&!strings[0].equals("7")){
+        if(strings[0].equals("1")){
            for (int j=ExistingTrades.getInstance().size()-1; j==0; j--){
                if (ExistingTrades.getInstance().get(j).getStrategy().equals(this)) {
                    try {
@@ -61,18 +72,18 @@ public class PivotPoint extends IStrategy {
                }
             }
             calculatePivotPointSupportAndResistance();
+        }
 
-
-        if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(pivotPoint)>0){
-            TradeMgr.getInstance().open(this,  new MovingStopLoss(pivotPoint.subtract(getPoint().multiply(new BigDecimal(10))), new BigDecimal(100)), TradeType.BUY, getSymbol() );
+        if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(R1)>0 && !isThisStrategyTradeType(TradeType.BUY)){
+            TradeMgr.getInstance().open(this,  new StopLoss(pivotPoint), TradeType.BUY, getSymbol(), getSize(), getAccount() );
 
 
         }
-        else if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(pivotPoint)<0){
-            TradeMgr.getInstance().open(this,  new MovingStopLoss(pivotPoint.add(getPoint().multiply(new BigDecimal(10))), new BigDecimal(100)), TradeType.SELL, getSymbol() );
+        else if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(S1)<0 && !isThisStrategyTradeType(TradeType.SELL)){
+            TradeMgr.getInstance().open(this,  new StopLoss(pivotPoint), TradeType.SELL, getSymbol(), getSize(), getAccount() );
 
         }
 
-    }
+
     }
 }
