@@ -61,29 +61,28 @@ public class PivotPoint extends IStrategy {
 
 
 
-        if(strings[0].equals("1")){
-           for (int j=ExistingTrades.getInstance().size()-1; j==0; j--){
-               if (ExistingTrades.getInstance().get(j).getStrategy().equals(this)) {
-                   try {
-                       TradeMgr.getInstance().close(ExistingTrades.getInstance().get(j));
-                   } catch (Exception e) {
-                       e.printStackTrace();
-                   }
-               }
+        if(strings[0].equals("1")) {
+            for (int j = ExistingTrades.getInstance().size() - 1; j == 0; j--) {
+                if (ExistingTrades.getInstance().get(j).getStrategy().equals(this)) {
+                    try {
+                        TradeMgr.getInstance().close(ExistingTrades.getInstance().get(j));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
             calculatePivotPointSupportAndResistance();
+
+
+            if (MarketMgr.getInstance(getSymbol()).getAsk().compareTo(R1) > 0 && !isThisStrategyTradeType(TradeType.BUY)) {
+                TradeMgr.getInstance().open(this, new StopLoss(pivotPoint), TradeType.BUY, getSymbol(), getSize(), getAccount());
+
+
+            } else if (MarketMgr.getInstance(getSymbol()).getAsk().compareTo(S1) < 0 && !isThisStrategyTradeType(TradeType.SELL)) {
+                TradeMgr.getInstance().open(this, new StopLoss(pivotPoint), TradeType.SELL, getSymbol(), getSize(), getAccount());
+
+            }
         }
-
-        if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(R1)>0 && !isThisStrategyTradeType(TradeType.BUY)){
-            TradeMgr.getInstance().open(this,  new StopLoss(pivotPoint), TradeType.BUY, getSymbol(), getSize(), getAccount() );
-
-
-        }
-        else if(MarketMgr.getInstance(getSymbol()).getAsk().compareTo(S1)<0 && !isThisStrategyTradeType(TradeType.SELL)){
-            TradeMgr.getInstance().open(this,  new StopLoss(pivotPoint), TradeType.SELL, getSymbol(), getSize(), getAccount() );
-
-        }
-
 
     }
 }
